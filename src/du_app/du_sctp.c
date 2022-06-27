@@ -170,6 +170,7 @@ uint8_t duSctpCfgReq(SctpParams sctpCfg)
    ricParams.itfState            = DU_SCTP_DOWN;
    ricParams.srcPort             = sctpCfg.duPort[E2_INTERFACE];
    ricParams.recvMsgSet          = ROK;
+   printf("\naddr %ld, port %ld\n", ricParams.destIpAddr.ipV4Addr, ricParams.destPort);
    memset ((uint8_t *)&ricParams.sockFd, -1, sizeof(CmInetFd));
    fillDestNetAddr(&ricParams.destIpNetAddr, &ricParams.destIpAddr);
    fillAddrLst(&ricParams.destAddrLst, &ricParams.destIpAddr);
@@ -299,6 +300,7 @@ uint8_t establishReq(DuSctpDestCb *paramPtr)
    if((ret == ROK) & (paramPtr->itfState == DU_SCTP_DOWN))
    {
       paramPtr->itfState = DU_SCTP_CONNECTING;
+      printf("\n%lld\n",paramPtr->destIpAddr.ipV4Addr);
    }
 
    /* Post the EVTSTARTPOLL Msg */
@@ -353,6 +355,7 @@ uint8_t duSctpAssocReq(uint8_t itfType)
       case E2_INTERFACE:
       {
          paramPtr = &ricParams;
+         printf("\n123456\n");
          ret = establishReq(paramPtr);
          break;
       }
@@ -629,7 +632,6 @@ uint8_t  processPolling(sctpSockPollParams *pollParams, CmInetFd *sockFd, uint32
    {
       CM_INET_FD_CLR(sockFd, &pollParams->readFd);
       ret = cmInetSctpRecvMsg(sockFd, &pollParams->addr, &pollParams->port, memInfo, &(pollParams->mBuf), &pollParams->bufLen, &pollParams->info, &pollParams->flag, &pollParams->ntfy);
-        
       if(ret != ROK)
       {
          DU_LOG("\n SCTP: Failed to receive sctp msg for sockFd[%d]\n", sockFd->fd);

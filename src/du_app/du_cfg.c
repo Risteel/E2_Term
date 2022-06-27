@@ -321,7 +321,7 @@ uint8_t readMacCfg()
 uint8_t fillDuPort(uint16_t *duPort)
 {
    duPort[F1_INTERFACE]   = DU_PORT;     /* DU Port idx  0 38472 */
-   duPort[E2_INTERFACE]   = RIC_PORT;    /* RIC Port idx 1 38482 */
+   duPort[E2_INTERFACE]   = E2_SCTP_PORT;    /* RIC Port idx 1 38482 */
 
    return ROK;
 }
@@ -518,16 +518,17 @@ uint8_t fillServCellCfgCommSib(SrvCellCfgCommSib *srvCellCfgComm)
 uint8_t readCfg()
 {
    uint8_t i,j,k;
-   uint32_t ipv4_du, ipv4_cu, ipv4_ric;
+   U32 ipv4_du, ipv4_cu, ipv4_ric;
    MibParams mib;
    Sib1Params sib1;
 
    char du_ip_v4_addr[NI_MAXHOST];
-   getPrimaryIp(du_ip_v4_addr);
-   printf("\nIP address %s\n", du_ip_v4_addr);
+   //getPrimaryIp(du_ip_v4_addr);
+   strcpy(du_ip_v4_addr, INTERFACE_TO_RIC);
+   printf("\nIP address~~~ %s\n", du_ip_v4_addr);
 
    //cmInetAddr((S8*)DU_IP_V4_ADDR, &ipv4_du);
-   cmInetAddr((S8*)du_ip_v4_addr, &ipv4_du);
+   cmInetAddr((S8*)INTERFACE_TO_RIC, &ipv4_du);
    cmInetAddr((S8*)CU_IP_V4_ADDR, &ipv4_cu);
    cmInetAddr((S8*)RIC_IP_V4_ADDR, &ipv4_ric);
    fillDuPort(duCfgParam.sctpParams.duPort);
@@ -542,6 +543,7 @@ uint8_t readCfg()
    /* Fill RIC Params */
    duCfgParam.sctpParams.ricIpAddr.ipV4Addr = ipv4_ric;
    duCfgParam.sctpParams.ricPort            = RIC_PORT;
+   
    /* EGTP Parameters */
    duCfgParam.egtpParams.localIp.ipV4Pres = TRUE;
    duCfgParam.egtpParams.localIp.ipV4Addr = ipv4_du;

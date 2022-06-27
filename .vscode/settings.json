@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.x": "c",
+        "protocolie-ide2.h": "c",
+        "globale2node-gnb-id.h": "c",
+        "list": "c"
+    }
+}

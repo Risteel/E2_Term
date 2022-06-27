@@ -5,7 +5,7 @@
 #define MAX_BUF_SIZE 1024
 #define MAX_REPORT_PAYLOAD 300
 // #define METRICS_DIR "./"
-#define METRICS_DIR "/root/radio_code/scope_config/metrics/csv/"
+#define METRICS_DIR "/root/ricind/"
 #define METRICS_PRESET 1
 #define CSV_DEBUG 0
 
@@ -58,6 +58,7 @@ typedef struct bs_metrics {
 void readMetrics(FILE *fp, bs_metrics_t *metrics);
 void readMetricsInteractive(FILE *fp, char (*output_string)[MAX_BUF_SIZE], int metrics_preset);
 void readLastMetricsLines(char *file_name, int to_read, char **output_string, int skip_header);
+void readMaliciousInformation(char *file_name, char **output_string);
 int getDirContent(char *directory_name, char (*dir_content)[MAX_BUF_SIZE]);
 void get_tx_string(char **send_metrics, int lines_to_read);
 unsigned long int get_time_milliseconds(void);

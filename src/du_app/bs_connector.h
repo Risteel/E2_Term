@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // send dummy data instead of reading BS metrics
-#define DEBUG 0
+#define DEBUG 1
 #define LINES_TO_READ 2
 
 typedef struct {

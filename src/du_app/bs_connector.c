@@ -72,12 +72,9 @@ void *periodicDataReport(void* arg) {
 
 // get and send metrics to xApp
 void sendMetricsXapp(uint32_t ric_req_id) {
-
   char *payload = NULL;
   int lines_to_read = LINES_TO_READ;
-
   get_tx_string(&payload, lines_to_read);
-
   if (payload) {
     int payload_len = strlen(payload);
 
@@ -95,9 +92,7 @@ void sendMetricsXapp(uint32_t ric_req_id) {
         strcpy(chunk, "m");
         offset = 1;
       }
-
       strncpy(chunk + offset, payload + i, MAX_REPORT_PAYLOAD);
-
       BuildAndSendRicIndicationReport(chunk, strlen(chunk), ric_req_id);
     }
 

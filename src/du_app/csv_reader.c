@@ -236,6 +236,24 @@ void readLastMetricsLines(char *file_name, int to_read, char **output_string, in
   }
 }
 
+// get content of specified file
+void readMaliciousInformation(char *file_name, char **output_string)
+{
+  FILE *fp;
+  fp = fopen(file_name, "r");
+
+  char contents[1000] = {0}, *line = NULL;
+  size_t len = 0, tot_len = 0;
+  while (getline(&line, &len, fp) != -1){
+      strcat(contents, line);
+      tot_len += strlen(line);
+  }
+  *output_string = (char*) calloc(tot_len + 1, sizeof(char*));
+  strcpy(*output_string, contents);
+  fclose(fp);
+  free(line);
+}
+
 
 // get content of specified directory
 int getDirContent(char *directory_name, char (*dir_content)[MAX_BUF_SIZE]) {
@@ -256,7 +274,7 @@ int getDirContent(char *directory_name, char (*dir_content)[MAX_BUF_SIZE]) {
     strcpy(imsi, token);
     token = strtok(NULL, "_");
     if (token != NULL) {
-      if (strlen(imsi) > 4 && strcmp(token, "metrics.csv") == 0) {
+      if (strlen(imsi) != 0 && strcmp(token, "malicious") == 0) {
         strcpy(dir_content[num_el++], directory->d_name);
       }
     }
@@ -284,8 +302,8 @@ void get_tx_string(char **send_metrics, int lines_to_read) {
     strcat(file_path, dir_content[i]);
 
     // read metrics, always skip header
-    readLastMetricsLines(file_path, lines_to_read, &metrics_string, 1);
-
+    //readLastMetricsLines(file_path, lines_to_read, &metrics_string, 1);
+    readMaliciousInformation(file_path, &metrics_string);
     if (metrics_string) {
       int metrics_size = strlen(metrics_string);
 

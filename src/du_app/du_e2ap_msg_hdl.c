@@ -27,7 +27,9 @@
 #include "du_mgr_main.h"
 #include "du_utils.h"
 #include "GlobalE2node-gNB-ID.h"
-#include<ProtocolIE-FieldE2.h>
+#include <ProtocolIE-FieldE2.h>
+#include "ProtocolIE-IDE2.h"
+#include "ProtocolIE-SingleContainerE2.h"
 #include "E2AP-PDU.h"
 #include "du_e2ap_msg_hdl.h"
 #include "odu_common_codec.h"
@@ -106,8 +108,9 @@ uint8_t buildGnbId(BIT_STRING_t *id, uint8_t unusedBits, uint8_t byteSize, uint8
 
   // get node IP address
   char du_ip_v4_addr[NI_MAXHOST];
-  getPrimaryIp(du_ip_v4_addr);
-
+  //getPrimaryIp(du_ip_v4_addr);
+  strcpy(du_ip_v4_addr, INTERFACE_TO_RIC);
+  printf("\nIP address!!! %s\n", du_ip_v4_addr);
   // get last part of IP
   // E.g., if IP is 10.0.2.23 get 23
   char* delimiter = ".";
@@ -183,6 +186,7 @@ uint8_t fillE2SetupReq(E2setupRequest_t **e2SetupReq, uint8_t *idx)
          {
             DU_ALLOC((*e2SetupReq)->protocolIEs.list.array[*idx],\
                sizeof(E2setupRequestIEs_t));
+            idx2 = *idx;
             if((*e2SetupReq)->protocolIEs.list.array[*idx] == NULLP)
             {
                DU_LOG("\nE2AP : Memory allocation failed for arrayidx [%d]", *idx);
@@ -374,6 +378,8 @@ uint8_t deAllocateE2SetupReqMsg(E2AP_PDU_t *e2apMsg, \
                             sizeof(E2setupRequestIEs_t));
                         break;
                      }
+                     case ProtocolIE_IDE2_id_RANfunctionsAdded:
+                        break;
                      default:
                         DU_LOG("\n E2AP: Invalid event at e2SetupRequet %ld ",\
 	     	           (e2SetupReq->protocolIEs.list.array[idx2]->id));
@@ -739,6 +745,7 @@ uint8_t BuildAndSendRicSubscriptionRsp()
         else
         {
             DU_LOG("\nE2AP : Created APER encoded buffer for RIC subscription response \n");
+            printf("size %d\n", encBufSize);
 	         for(int i=0; i< encBufSize; i++)
 	         {
 		          printf("%x",encBuf[i]);
@@ -804,6 +811,8 @@ uint8_t procE2SetupRsp(E2AP_PDU_t *e2apMsg)
             /*TODO : e2apMsgDb.plmn memory to be deallocated after the usage */
 			   break;
          }
+         case ProtocolIE_IDE2_id_RANfunctionsAccepted:
+            break;
          default:
             DU_LOG("\nE2AP : Invalid IE received in E2SetupRsp:%ld",
                   e2SetRspMsg->protocolIEs.list.array[idx]->id);
@@ -876,6 +885,7 @@ uint8_t procRicSubsReq(E2AP_PDU_t *e2apMsg)
               printf("\nlen %d, ricEventTrigger %s\n", strlen(e2apMsgDb.ricEventTrigger), e2apMsgDb.ricEventTrigger);
 
               float trigger_timer = ((float) atoi(e2apMsgDb.ricEventTrigger) / 1000.0);
+              trigger_timer = 5.0f;
               printf("trigger_timer %f seconds\n", trigger_timer);
 
               // print ricRequestId, this should be the xApp ID
@@ -920,6 +930,7 @@ uint8_t procRicSubsReq(E2AP_PDU_t *e2apMsg)
             break;
       }
    }
+   printf("proccc!!!\n");
    ret = BuildAndSendRicSubscriptionRsp();
 
    return ret;
@@ -996,7 +1007,8 @@ uint8_t procRicControlReq(E2AP_PDU_t *e2apMsg)
               stop_data_reporting_nrt_ric();
             }
             else {
-              write_control_policies((char*) e2apMsgDb.ricEventTrigger);
+              //write_control_policies((char*) e2apMsgDb.ricEventTrigger);
+              printf("\nric control msg receive!!!");
             }
 
             break;
@@ -1453,6 +1465,7 @@ uint8_t BuildAndSendRicIndicationReport(char* payload, int payload_len, uint32_t
 		      break;
 		  }
 		  /* Prints the Msg formed */
+        printf("~~~~\n");
         xer_fprint(stdout, &asn_DEF_E2AP_PDU, e2apMsg);
         memset((uint8_t *)encBuf, 0, ENC_BUF_MAX_LEN);
 		  encBufSize = 0;
@@ -1532,7 +1545,7 @@ uint8_t SendE2APMsg(Region region, Pool pool)
       DU_LOG("\nE2AP : Failed to allocate memory");
       return RFAILED;
    }
-
+   DU_LOG("\nE2AP: SCTP SUCC");
    return ROK;
 } /* SendE2APMsg */
 
