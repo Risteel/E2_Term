@@ -5,3 +5,6 @@ docs/_build/
 # build files
 bin/
 libs/
+build/odu/bin/
+build/odu/lib/
+build/odu/obj/

@@ -23,7 +23,7 @@
 #define DU_INST 0
 #define DU_ID 1
 //#define DU_IP_V4_ADDR "172.17.1.102"
-#define INTERFACE_TO_RIC "10.118.126.149"
+#define INTERFACE_TO_RIC "10.6.1.2"
 #define INTERFACE_TO_USRP "usrp0"
 #define SRSEPC_TUN_INTERFACE "srs_spgw_sgi"
 #define CU_IP_V4_ADDR "192.168.130.82"
@@ -31,7 +31,7 @@
 #define DU_PORT 38472
 #define CU_PORT 38472
 #define RIC_PORT 32511
-#define E2_SCTP_PORT "32500"
+#define E2_SCTP_PORT 32500
 #define DU_EGTP_PORT  39001
 #define CU_EGTP_PORT  39002
 #define NR_PCI 1
