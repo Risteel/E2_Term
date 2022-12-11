@@ -38,6 +38,28 @@
 #include "srs_connector.h"
 #include <string.h>
 
+//e2sm
+#include "E2AP_Cause.h"
+#include "E2AP_RICactionType.h"
+#include "E2AP_RICindicationType.h"
+#include "E2SM_KPM_E2SM-KPM-RANfunction-Description.h"
+#include "E2SM_KPM_RIC-ReportStyle-List.h"
+#include "E2SM_KPM_RIC-EventTriggerStyle-List.h"
+#include "E2SM_KPM_RT-Period-IE.h"
+#include "E2SM_KPM_E2SM-KPM-EventTriggerDefinition.h"
+#include "E2SM_KPM_Trigger-ConditionIE-Item.h"
+#include "E2SM_KPM_E2SM-KPM-IndicationHeader.h"
+#include "E2SM_KPM_E2SM-KPM-IndicationMessage.h"
+#include "E2SM_KPM_PM-Containers-List.h"
+#include "E2SM_KPM_PF-Container.h"
+#include "E2SM_KPM_CellResourceReportListItem.h"
+#include "E2SM_KPM_ServedPlmnPerCellListItem.h"
+#include "E2SM_KPM_EPC-DU-PM-Container.h"
+#include "E2SM_KPM_PF-ContainerListItem.h"
+#include "E2SM_KPM_PlmnID-List.h"
+#include "E2SM_KPM_EPC-CUUP-PM-Format.h"
+#include "E2SM_KPM_PerQCIReportListItemFormat.h"
+
 /* Global variable */
 DuCfgParams duCfgParam;
 /*******************************************************************
@@ -55,6 +77,8 @@ DuCfgParams duCfgParam;
  *         RFAILED - failure
  *
  ******************************************************************/
+
+int kpm_init();
 
 uint8_t buildGnbId(BIT_STRING_t *id, uint8_t unusedBits, uint8_t byteSize, uint8_t val);
 
@@ -255,6 +279,8 @@ uint8_t BuildAndSendE2SetupReq()
    uint8_t ret = ROK;
    E2AP_PDU_t        *e2apMsg = NULLP;
    E2setupRequest_t  *e2SetupReq = NULLP;
+   E2setupRequestIEs_t *ie;
+   RANfunction_ItemIEs_t *ran_function_item_ie;
    asn_enc_rval_t     encRetVal;       /* Encoder return value */
 
    DU_LOG("\nE2AP : Building E2 Setup Request\n");
@@ -278,13 +304,51 @@ uint8_t BuildAndSendE2SetupReq()
       e2apMsg->choice.initiatingMessage->procedureCode = ProcedureCodeE2_id_E2setup;
       e2apMsg->choice.initiatingMessage->value.present = InitiatingMessageE2__value_PR_E2setupRequest;
       e2SetupReq = &e2apMsg->choice.initiatingMessage->value.choice.E2setupRequest;
-
-      ret = fillE2SetupReq(&e2SetupReq, &idx);
+      
+      ie = (E2setupRequestIEs_t *)calloc(1,sizeof(*ie));
+      ie->id = ProtocolIE_IDE2_id_GlobalE2node_ID;
+      ie->criticality = CriticalityE2_reject;
+      ie->value.present = E2setupRequestIEs__value_PR_GlobalE2node_ID;
+      ie->value.choice.GlobalE2node_ID.present = GlobalE2node_ID_PR_gNB;
+      DU_ALLOC(ie->value.choice.GlobalE2node_ID.choice.gNB, sizeof(GlobalE2node_gNB_ID_t));
+      ret = BuildGlobalgNBId(ie->value.choice.GlobalE2node_ID.choice.gNB);
       if(ret != ROK)
+      {
+         ret = RFAILED;
+      }
+      ASN_SEQUENCE_ADD(&e2SetupReq->protocolIEs.list,ie);
+
+      // RAN function List
+      uint8_t enc_definition;
+      ssize_t enc_definition_len
+      kpm_init(&enc_definition, &enc_definition_len);
+      ie = (E2setupRequestIEs_t *)calloc(1,sizeof(*ie));
+      ie->id = ProtocolIE_IDE2_id_RANfunctionsAdded;
+      ie->criticality = CriticalityE2_reject;
+      ie->value.present = E2setupRequestIEs__value_PR_RANfunctions_List;
+
+      ran_function_item_ie = (RANfunction_ItemIEs_t *)calloc(1,sizeof(*ran_function_item_ie));
+      ran_function_item_ie->id = ProtocolIE_IDE2_id_RANfunction_Item;
+      ran_function_item_ie->criticality = CriticalityE2_reject;
+      ran_function_item_ie->value.present = RANfunction_ItemIEs__value_PR_RANfunction_Item;
+      ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionID = 0;
+      ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionRevision = 0;
+
+      ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.buf = (uint8_t *)malloc(enc_definition_len);
+      memcpy(ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.buf, enc_definition, enc_definition_len);
+      ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.size = enc_definition_len;
+      ASN_SEQUENCE_ADD(&ie->value.choice.RANfunctions_List.list, ran_function_item_ie);
+      ASN_SEQUENCE_ADD(&e2SetupReq->protocolIEs.list,ie);
+      
+      
+      //ret = fillE2SetupReq(&e2SetupReq, &idx);
+      /*if(ret != ROK)
       {
          DU_LOG("\nE2AP : fillE2SetupReq() failed");
          break;
-      }
+      }*/
+      
+      
       /* Prints the Msg formed */
       xer_fprint(stdout, &asn_DEF_E2AP_PDU, e2apMsg);
 
@@ -314,7 +378,8 @@ uint8_t BuildAndSendE2SetupReq()
     break;
    }while(true);
 
-   deAllocateE2SetupReqMsg(e2apMsg, e2SetupReq, idx);
+   ASN_STRUCT_FREE_CONTENTS_ONLY(NULL, &asn_DEF_E2AP_E2AP_PDU, &e2apMsg);
+   //deAllocateE2SetupReqMsg(e2apMsg, e2SetupReq, idx);
    return ret;
 }/* End of BuildAndSendE2SetupReq */
 
@@ -1680,6 +1745,89 @@ void E2APMsgHdlr(Buffer *mBuf)
    }/* End of switch(e2apMsg->present) */
 
 } /* End of E2APMsgHdlr */
+
+
+ssize_t kpm_encode(
+  const struct asn_TYPE_descriptor_s *td,
+  const asn_per_constraints_t *constraints,void *sptr,uint8_t **buf)
+{
+  ssize_t encoded;
+
+  encoded = aper_encode_to_new_buffer(td,constraints,sptr,(void **)buf);
+  if (encoded < 0)
+    return -1;
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY((*td),sptr);
+
+  return encoded;
+}
+
+int kpm_init(uint8_t *enc_definition, ssize_t *enc_definition_len)
+{
+  E2SM_KPM_E2SM_KPM_RANfunction_Description_t *func_def;
+  E2SM_KPM_RIC_ReportStyle_List_t *ric_report_style_item;
+  E2SM_KPM_RIC_EventTriggerStyle_List_t *ric_event_trigger_style_item;
+
+  E2SM_INFO(agent,"kpm: building function list\n");
+
+  /* Create and encode our function list. */
+  /*func = (ric::ran_function_t *)calloc(1,sizeof(*func));
+  func->function_id = get_next_ran_function_id();
+  func->model = this;
+  func->revision = 0;
+  func->name = "ORAN-E2SM-KPM";
+  func->description = "KPM monitor";*/
+
+  func_def = (E2SM_KPM_E2SM_KPM_RANfunction_Description_t *) \
+    calloc(1,sizeof(*func_def));
+
+  func_def->ranFunction_Name.ranFunction_ShortName.buf = \
+    (uint8_t *)strdup(func->name.c_str());
+  func_def->ranFunction_Name.ranFunction_ShortName.size = \
+    strlen(func->name.c_str());
+  func_def->ranFunction_Name.ranFunction_E2SM_OID.buf = \
+    (uint8_t *)strdup(func->model->oid.c_str());
+  func_def->ranFunction_Name.ranFunction_E2SM_OID.size = \
+    strlen(func->model->oid.c_str());
+  func_def->ranFunction_Name.ranFunction_Description.buf = \
+    (uint8_t *)strdup(func->description.c_str());
+  func_def->ranFunction_Name.ranFunction_Description.size = \
+    strlen(func->description.c_str());
+  func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List = \
+      (struct E2SM_KPM_E2SM_KPM_RANfunction_Description::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item__ric_EventTriggerStyle_List *)calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List));
+  ric_event_trigger_style_item = (E2SM_KPM_RIC_EventTriggerStyle_List_t *)calloc(1,sizeof(*ric_event_trigger_style_item));
+  ric_event_trigger_style_item->ric_EventTriggerStyle_Type = 1;
+  ric_event_trigger_style_item->ric_EventTriggerStyle_Name.buf = (uint8_t *)strdup("Trigger1");
+  ric_event_trigger_style_item->ric_EventTriggerStyle_Name.size = strlen("Trigger1");
+  ric_event_trigger_style_item->ric_EventTriggerFormat_Type = 1;
+  ASN_SEQUENCE_ADD(
+    &func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List->list,
+    ric_event_trigger_style_item);
+
+  func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List = \
+      (struct E2SM_KPM_E2SM_KPM_RANfunction_Description::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item__ric_ReportStyle_List *)calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List));
+  ric_report_style_item = (E2SM_KPM_RIC_ReportStyle_List_t *)calloc(1,sizeof(*ric_report_style_item));
+  ric_report_style_item->ric_ReportStyle_Type = 6;
+  ric_report_style_item->ric_ReportStyle_Name.buf = (uint8_t *)strdup("O-CU-UP Measurement Container for the EPC connected deployment");
+  ric_report_style_item->ric_ReportStyle_Name.size = strlen("O-CU-UP Measurement Container for the EPC connected deployment");
+  ric_report_style_item->ric_IndicationHeaderFormat_Type = 1;
+  ric_report_style_item->ric_IndicationMessageFormat_Type = 1;
+  ASN_SEQUENCE_ADD(&func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List->list,
+  		   ric_report_style_item);
+  
+  *enc_definition_len = kpm_encode(
+    &asn_DEF_E2SM_KPM_E2SM_KPM_RANfunction_Description,0,
+    func_def,enc_definition);
+  if (enc_definition_len < 0) {
+    DU_LOG("failed to encode E2SM function KPM!\n");
+    ASN_STRUCT_FREE_CONTENTS_ONLY(
+      asn_DEF_E2SM_KPM_E2SM_KPM_RANfunction_Description,func_def);
+    free(func_def);
+    return -1;
+  }
+
+  return 0;
+}
 
 /**********************************************************************
          End of file
