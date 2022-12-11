@@ -1,12 +1,8 @@
 {
     "files.associations": {
-        "*.x": "c",
-        "protocolie-ide2.h": "c",
-        "globale2node-gnb-id.h": "c",
-        "list": "c",
-        "e2setuprequest.h": "c",
-        "protocolie-containere2.h": "c",
+        "e2sm_kpm_e2sm-kpm-ranfunction-description.h": "c",
         "e2ap-pdu.h": "c",
-        "protocolie-fielde2.h": "c"
+        "e2sm_kpm_ric-reportstyle-list.h": "c",
+        "e2sm_kpm_ric-eventtriggerstyle-list.h": "c"
     }
 }

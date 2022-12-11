@@ -39,9 +39,9 @@
 #include <string.h>
 
 //e2sm
-#include "E2AP_Cause.h"
-#include "E2AP_RICactionType.h"
-#include "E2AP_RICindicationType.h"
+#include "CauseE2.h"
+#include "RICactionType.h"
+#include "RICindicationType.h"
 #include "E2SM_KPM_E2SM-KPM-RANfunction-Description.h"
 #include "E2SM_KPM_RIC-ReportStyle-List.h"
 #include "E2SM_KPM_RIC-EventTriggerStyle-List.h"
@@ -320,7 +320,7 @@ uint8_t BuildAndSendE2SetupReq()
 
       // RAN function List
       uint8_t enc_definition;
-      ssize_t enc_definition_len
+      ssize_t enc_definition_len;
       kpm_init(&enc_definition, &enc_definition_len);
       ie = (E2setupRequestIEs_t *)calloc(1,sizeof(*ie));
       ie->id = ProtocolIE_IDE2_id_RANfunctionsAdded;
@@ -378,7 +378,7 @@ uint8_t BuildAndSendE2SetupReq()
     break;
    }while(true);
 
-   ASN_STRUCT_FREE_CONTENTS_ONLY(NULL, &asn_DEF_E2AP_E2AP_PDU, &e2apMsg);
+   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_E2AP_PDU, &e2apMsg);
    //deAllocateE2SetupReqMsg(e2apMsg, e2SetupReq, idx);
    return ret;
 }/* End of BuildAndSendE2SetupReq */
@@ -1768,7 +1768,7 @@ int kpm_init(uint8_t *enc_definition, ssize_t *enc_definition_len)
   E2SM_KPM_RIC_ReportStyle_List_t *ric_report_style_item;
   E2SM_KPM_RIC_EventTriggerStyle_List_t *ric_event_trigger_style_item;
 
-  E2SM_INFO(agent,"kpm: building function list\n");
+
 
   /* Create and encode our function list. */
   /*func = (ric::ran_function_t *)calloc(1,sizeof(*func));
@@ -1782,19 +1782,19 @@ int kpm_init(uint8_t *enc_definition, ssize_t *enc_definition_len)
     calloc(1,sizeof(*func_def));
 
   func_def->ranFunction_Name.ranFunction_ShortName.buf = \
-    (uint8_t *)strdup(func->name.c_str());
+    (uint8_t *)strdup("ORAN-E2SM-KPM");
   func_def->ranFunction_Name.ranFunction_ShortName.size = \
-    strlen(func->name.c_str());
+    strlen("ORAN-E2SM-KPM");
   func_def->ranFunction_Name.ranFunction_E2SM_OID.buf = \
-    (uint8_t *)strdup(func->model->oid.c_str());
+    (uint8_t *)strdup("0");
   func_def->ranFunction_Name.ranFunction_E2SM_OID.size = \
-    strlen(func->model->oid.c_str());
+    strlen("0");
   func_def->ranFunction_Name.ranFunction_Description.buf = \
-    (uint8_t *)strdup(func->description.c_str());
+    (uint8_t *)strdup("KPM monitor");
   func_def->ranFunction_Name.ranFunction_Description.size = \
-    strlen(func->description.c_str());
+    strlen("KPM monitor");
   func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List = \
-      (struct E2SM_KPM_E2SM_KPM_RANfunction_Description::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item__ric_EventTriggerStyle_List *)calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List));
+      calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_EventTriggerStyle_List));
   ric_event_trigger_style_item = (E2SM_KPM_RIC_EventTriggerStyle_List_t *)calloc(1,sizeof(*ric_event_trigger_style_item));
   ric_event_trigger_style_item->ric_EventTriggerStyle_Type = 1;
   ric_event_trigger_style_item->ric_EventTriggerStyle_Name.buf = (uint8_t *)strdup("Trigger1");
@@ -1805,7 +1805,7 @@ int kpm_init(uint8_t *enc_definition, ssize_t *enc_definition_len)
     ric_event_trigger_style_item);
 
   func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List = \
-      (struct E2SM_KPM_E2SM_KPM_RANfunction_Description::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item::E2SM_KPM_E2SM_KPM_RANfunction_Description__e2SM_KPM_RANfunction_Item__ric_ReportStyle_List *)calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List));
+      calloc(1,sizeof(*func_def->e2SM_KPM_RANfunction_Item.ric_ReportStyle_List));
   ric_report_style_item = (E2SM_KPM_RIC_ReportStyle_List_t *)calloc(1,sizeof(*ric_report_style_item));
   ric_report_style_item->ric_ReportStyle_Type = 6;
   ric_report_style_item->ric_ReportStyle_Name.buf = (uint8_t *)strdup("O-CU-UP Measurement Container for the EPC connected deployment");
