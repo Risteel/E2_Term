@@ -1,9 +1,9 @@
 #!/bin/sh
 
-export RIC_HOST="10.118.126.148"
-export RIC_PORT=32511
-export E2_SCTP_PORT=32500
-export INTERFACE_TO_RIC="10.6.1.2"
+export RIC_HOST="192.168.1.12"
+export RIC_PORT=32222
+export E2_SCTP_PORT=37464
+export INTERFACE_TO_RIC="192.168.1.12"
 export DEBUG=0
 
 

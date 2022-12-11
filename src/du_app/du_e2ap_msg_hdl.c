@@ -322,6 +322,7 @@ uint8_t BuildAndSendE2SetupReq()
       uint8_t enc_definition;
       ssize_t enc_definition_len;
       kpm_init(&enc_definition, &enc_definition_len);
+      DU_LOG("\nenc: %d, enc_len:%d\n", enc_definition, enc_definition_len);
       ie = (E2setupRequestIEs_t *)calloc(1,sizeof(*ie));
       ie->id = ProtocolIE_IDE2_id_RANfunctionsAdded;
       ie->criticality = CriticalityE2_reject;
@@ -335,7 +336,7 @@ uint8_t BuildAndSendE2SetupReq()
       ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionRevision = 0;
 
       ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.buf = (uint8_t *)malloc(enc_definition_len);
-      memcpy(ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.buf, enc_definition, enc_definition_len);
+      memcpy(ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.buf, &enc_definition, enc_definition_len);
       ran_function_item_ie->value.choice.RANfunction_Item.ranFunctionDefinition.size = enc_definition_len;
       ASN_SEQUENCE_ADD(&ie->value.choice.RANfunctions_List.list, ran_function_item_ie);
       ASN_SEQUENCE_ADD(&e2SetupReq->protocolIEs.list,ie);
