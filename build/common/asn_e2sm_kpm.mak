@@ -33,7 +33,7 @@ I_OPTS+=-I$(SRC_DIR)/../common
 #-------------------------------------------------------------#
 $(LIB_DIR)/libasn_e2sm_kpm.a:$(C_OBJS) $(C_WO_PED_OBJS)
 		  @echo -e "Creating Archive $(COLOR) $@ $(REVERT_COLOR)"
-		  $(Q)ar -cr $(LIB_DIR)/libasn_e2am.a $(C_OBJS) $(C_WO_PED_OBJS)
+		  $(Q)ar -cr $(LIB_DIR)/libasn_e2sm_kpm.a $(C_OBJS) $(C_WO_PED_OBJS)
 
 
 #-------------------------------------------------------------#
